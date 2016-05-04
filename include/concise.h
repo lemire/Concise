@@ -270,16 +270,14 @@ public:
                 if (!wah_mode)
                     if (block == 0 && ((w >> 25) - 1) == bit)
                         return true;
-                block -= getSequenceCount(w) + 1;
-                if (block < 0)
+                if (block < getSequenceCount(w) + 1)
                     return false;
                 break;
             case UINT32_C(0x40000000):	// ONE SEQUENCE
                 if (!wah_mode)
                     if ((block == 0) && (((UINT32_C(0x0000001F) & (w >> 25)) - 1)) == bit)
                         return false;
-                block -= getSequenceCount(w) + 1;
-                if (block < 0)
+                if (block < getSequenceCount(w) + 1)
                     return true;
                 break;
             }
