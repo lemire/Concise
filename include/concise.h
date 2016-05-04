@@ -645,7 +645,7 @@ public:
 			count = getSequenceCount(word) + 1;
 			if (!wah_mode && !isSequenceWithNoBits(word)) {
 				IsLiteral = true;
-				int bit = (1 << (word >> 25)) >> 1;
+				int bit = (1 << ((word >> 25)%32)) >> 1;
 				word = isZeroSequence(word) ?
 						(ALL_ZEROS_LITERAL | bit) : (ALL_ONES_LITERAL & ~bit);
 			}
