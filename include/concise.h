@@ -1,8 +1,8 @@
 #include <iostream>
-
 #include <cstdint>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 #include "conciseutil.h"
 
 template<bool wah_mode>
@@ -54,12 +54,12 @@ public:
 		ConciseSet res;
 		res.words.resize(
 				1
-						+ min(
+						+ std::min(
 								(uint32_t)(
 										this->lastWordIndex
 												+ other.lastWordIndex + 2),
 								maxLiteralLengthDivision(
-										max(this->last, other.last))
+										std::max(this->last, other.last))
 										<< (wah_mode ? 1 : 0)));
 
 		// scan "this" and "other"
@@ -68,7 +68,7 @@ public:
 		while (true) {
 			if (!thisItr.IsLiteral) {
 				if (!otherItr.IsLiteral) {
-					int minCount = min(thisItr.count, otherItr.count);
+					int minCount = std::min(thisItr.count, otherItr.count);
 					res.appendFill(minCount, thisItr.word & otherItr.word);
 					if (!thisItr.prepareNext(minCount)
 							| !otherItr.prepareNext(minCount)) // NOT ||
@@ -116,12 +116,12 @@ public:
 		ConciseSet res;
 		res.words.resize(
 				1
-						+ min(
+						+ std::min(
 								(uint32_t)(
 										this->lastWordIndex
 												+ other.lastWordIndex + 2),
 								maxLiteralLengthDivision(
-										max(this->last, other.last))
+										std::max(this->last, other.last))
 										<< (wah_mode ? 1 : 0)));
 
 		// scan "this" and "other"
@@ -130,7 +130,7 @@ public:
 		while (true) {
 			if (!thisItr.IsLiteral) {
 				if (!otherItr.IsLiteral) {
-					int minCount = min(thisItr.count, otherItr.count);
+					int minCount = std::min(thisItr.count, otherItr.count);
 					res.appendFill(minCount, thisItr.word | otherItr.word);
 					if (!thisItr.prepareNext(minCount)
 							| !otherItr.prepareNext(minCount)) // NOT ||
@@ -155,7 +155,7 @@ public:
 
 		bool invalidLast = true;
 
-		res.last = max(this->last, other.last);
+		res.last = std::max(this->last, other.last);
 		invalidLast = false;
 		invalidLast |= thisItr.flush(res);
 		invalidLast |= otherItr.flush(res);

@@ -2,16 +2,6 @@
 #define CONCISEUTIL_H
 #include <cstdint>
 
-template <class T>
-static inline int32_t max(T x, T y) {
-    return x < y ? y : x;
-}
-
-template <class T>
-static inline int32_t min(T x, T y) {
-    return x < y ? x : y;
-}
-
 
 /**
  * The highest representable integer.
