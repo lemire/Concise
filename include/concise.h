@@ -3,6 +3,8 @@
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
+#include <queue>
+
 #include "conciseutil.h"
 
 template<bool wah_mode>
@@ -371,6 +373,69 @@ public:
 		}
 		return size;
 	}
+
+	void fast_logicalor_tocontainer(size_t n, const ConciseSet<wah_mode> **inputs,
+	                                ConciseSet<wah_mode> &container) {
+	  class ConcisePtr {
+
+	  public:
+	    ConcisePtr(const ConciseSet<wah_mode> *p, bool o) : ptr(p), own(o) {}
+	    const ConciseSet<wah_mode> *ptr;
+	    bool own; // whether to clean
+
+	    bool operator<(const ConcisePtr &o) const {
+	      return o.ptr->sizeInBytes() < ptr->sizeInBytes(); // backward on purpose
+	    }
+	  };
+
+	  if (n == 0) {
+	    container.reset();
+	    return;
+	  }
+	  if (n == 1) {
+	    container = *inputs[0];
+	    return;
+	  }
+	  std::priority_queue<ConcisePtr> pq;
+	  for (size_t i = 0; i < n; i++) {
+	    // could use emplace
+	    pq.push(ConcisePtr(inputs[i], false));
+	  }
+	  while (pq.size() > 2) {
+
+	    ConcisePtr x1 = pq.top();
+	    pq.pop();
+
+	    ConcisePtr x2 = pq.top();
+	    pq.pop();
+
+	    ConciseSet<wah_mode> *buffer = new ConciseSet<wah_mode>();
+	    x1.ptr->logicalor(*x2.ptr, *buffer);
+
+	    if (x1.own) {
+	      delete x1.ptr;
+	    }
+	    if (x2.own) {
+	      delete x2.ptr;
+	    }
+	    pq.push(ConcisePtr(buffer, true));
+	  }
+	  ConcisePtr x1 = pq.top();
+	  pq.pop();
+
+	  ConcisePtr x2 = pq.top();
+	  pq.pop();
+
+	  x1.ptr->logicalor(*x2.ptr, container);
+
+	  if (x1.own) {
+	    delete x1.ptr;
+	  }
+	  if (x2.own) {
+	    delete x2.ptr;
+	  }
+	}
+
 
 	std::vector<uint32_t> words;
 
