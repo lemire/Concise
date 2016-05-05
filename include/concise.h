@@ -374,8 +374,7 @@ public:
 		return size;
 	}
 
-	static void fast_logicalor_tocontainer(size_t n, const ConciseSet<wah_mode> **inputs,
-	                                ConciseSet<wah_mode> &container) {
+	static ConciseSet<wah_mode> * fast_logicalor_tocontainer(size_t n, const ConciseSet<wah_mode> **inputs) {
 	  class ConcisePtr {
 
 	  public:
@@ -389,12 +388,10 @@ public:
 	  };
 
 	  if (n == 0) {
-	    container.reset();
-	    return;
+		return new ConciseSet<wah_mode>();
 	  }
 	  if (n == 1) {
-	    container = *inputs[0];
-	    return;
+	    return new ConciseSet<wah_mode>(*inputs[0]);
 	  }
 	  std::priority_queue<ConcisePtr> pq;
 	  for (size_t i = 0; i < n; i++) {
@@ -409,8 +406,7 @@ public:
 	    ConcisePtr x2 = pq.top();
 	    pq.pop();
 
-	    ConciseSet<wah_mode> *buffer = new ConciseSet<wah_mode>();
-	    x1.ptr->logicalor(*x2.ptr, *buffer);
+	    ConciseSet<wah_mode> *buffer = x1.ptr->logicalor(*x2.ptr);
 
 	    if (x1.own) {
 	      delete x1.ptr;
@@ -426,7 +422,7 @@ public:
 	  ConcisePtr x2 = pq.top();
 	  pq.pop();
 
-	  x1.ptr->logicalor(*x2.ptr, container);
+	  ConciseSet<wah_mode> * container = x1.ptr->logicalor(*x2.ptr);
 
 	  if (x1.own) {
 	    delete x1.ptr;
@@ -434,6 +430,7 @@ public:
 	  if (x2.own) {
 	    delete x2.ptr;
 	  }
+	  return container;
 	}
 
 
