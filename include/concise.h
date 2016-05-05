@@ -65,15 +65,7 @@ public:
 			res.clear();
 			return;
 		}
-		res.words.resize(
-				1
-						+ std::min(
-								(uint32_t)(
-										this->lastWordIndex
-												+ other.lastWordIndex + 2),
-								maxLiteralLengthDivision(
-										std::max(this->last, other.last))
-										<< (wah_mode ? 1 : 0)));
+		res.words.resize( 3 + this->lastWordIndex + other.lastWordIndex);
 
 		// scan "this" and "other"
 		WordIterator<wah_mode> thisItr(*this);
@@ -133,16 +125,7 @@ public:
 			res.clear();
 			return;
 		}
-		res.words.resize(
-				1
-						+ std::min(
-								(uint32_t)(
-										this->lastWordIndex
-												+ other.lastWordIndex + 2),
-								maxLiteralLengthDivision(
-										std::max(this->last, other.last))
-										<< (wah_mode ? 1 : 0)));
-
+		res.words.resize( 3 + this->lastWordIndex + other.lastWordIndex);
 		// scan "this" and "other"
 		WordIterator<wah_mode> thisItr(*this);
 		WordIterator<wah_mode> otherItr(other);
