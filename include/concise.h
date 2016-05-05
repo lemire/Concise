@@ -374,7 +374,7 @@ public:
 		return size;
 	}
 
-	void fast_logicalor_tocontainer(size_t n, const ConciseSet<wah_mode> **inputs,
+	static void fast_logicalor_tocontainer(size_t n, const ConciseSet<wah_mode> **inputs,
 	                                ConciseSet<wah_mode> &container) {
 	  class ConcisePtr {
 
