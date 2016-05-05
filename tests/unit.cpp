@@ -4,6 +4,31 @@
 
 #include "concise.h"
 
+
+template<bool ewahmode>
+void heaportest() {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	ConciseSet<ewahmode> * test[3];
+	ConciseSet<ewahmode> test1;
+	for(int k = 0; k < 100; k+=7) test1.add(k);
+	ConciseSet<ewahmode> test2;
+	for(int k = 0; k < 100; k+=15) test2.add(k);
+	ConciseSet<ewahmode> test3;
+	for(int k = 0; k < 100; k+=2) test3.add(k);
+	test[0] = &test1;
+	test[1] = &test2;
+	test[2] = &test3;
+	ConciseSet<ewahmode>  answer = ConciseSet<ewahmode>::fast_logicalor(3,(const ConciseSet<ewahmode> **)&test[0]);
+	assert(answer.size() == 60);
+	ConciseSet<ewahmode> tmp;
+	tmp = answer.logicaland(test1);
+	assert(tmp.size() == test1.size());
+	tmp = answer.logicaland(test2);
+	assert(tmp.size() == test2.size());
+	tmp = answer.logicaland(test3);
+	assert(tmp.size() == test3.size());
+}
+
 template<bool ewahmode>
 void basictest() {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -188,6 +213,8 @@ void variedtest() {
 }
 
 int main() {
+	heaportest<true>();
+	heaportest<false>();
 	basictest<true>();
 	basictest<false>();
 	longtest<true>();

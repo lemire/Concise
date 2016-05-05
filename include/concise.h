@@ -31,6 +31,7 @@ public:
 			words(cs.words), last(cs.last), lastWordIndex(cs.lastWordIndex) {
 	}
 
+
 	bool isEmpty() const {
 		return lastWordIndex == -1;
 	}
@@ -55,9 +56,15 @@ public:
 	}
 
 	ConciseSet<wah_mode> logicaland(const ConciseSet<wah_mode> & other) const {
-		if (isEmpty() || other.isEmpty())
-			return ConciseSet<wah_mode>();
-		ConciseSet res;
+		ConciseSet<wah_mode> res;
+		logicalandToContainer(other, res);
+		return res;
+	}
+	void logicalandToContainer(const ConciseSet<wah_mode> & other, ConciseSet<wah_mode> & res) const {
+		if (isEmpty() || other.isEmpty()) {
+			res.clear();
+			return;
+		}
 		res.words.resize(
 				1
 						+ std::min(
@@ -102,24 +109,30 @@ public:
 		// remove trailing zeros
 		res.trimZeros();
 		if (res.isEmpty())
-			return res;
+			return;
 
 		// compute the greatest element
 		if (invalidLast)
 			res.updateLast();
 
-		// compact the memory
-		res.shrink_to_fit();
-
-		return res;
+		return;
 	}
 
 	ConciseSet<wah_mode> logicalor(const ConciseSet<wah_mode> & other) const {
-		if (this->isEmpty())
-			return ConciseSet<wah_mode>(other);
-		if (other.isEmpty())
-			return ConciseSet<wah_mode>(*this);
-		ConciseSet res;
+		ConciseSet<wah_mode> res;
+		logicalorToContainer(other, res);
+		return res;
+	}
+
+	void logicalorToContainer(const ConciseSet<wah_mode> & other, ConciseSet & res) const {
+		if (this->isEmpty()) {
+			res = other;
+			return;
+		}
+		if (other.isEmpty()) {
+			res.clear();
+			return;
+		}
 		res.words.resize(
 				1
 						+ std::min(
@@ -169,16 +182,13 @@ public:
 		// remove trailing zeros
 		res.trimZeros();
 		if (res.isEmpty())
-			return res;
+			return;
 
 		// compute the greatest element
 		if (invalidLast)
 			res.updateLast();
 
-		// compact the memory
-		res.shrink_to_fit();
-
-		return res;
+		return;
 
 	}
 
@@ -374,7 +384,7 @@ public:
 		return size;
 	}
 
-	static ConciseSet<wah_mode> * fast_logicalor_tocontainer(size_t n, const ConciseSet<wah_mode> **inputs) {
+	static ConciseSet<wah_mode>  fast_logicalor(size_t n, const ConciseSet<wah_mode> **inputs) {
 	  class ConcisePtr {
 
 	  public:
@@ -388,10 +398,10 @@ public:
 	  };
 
 	  if (n == 0) {
-		return new ConciseSet<wah_mode>();
+		return ConciseSet<wah_mode>();
 	  }
 	  if (n == 1) {
-	    return new ConciseSet<wah_mode>(*inputs[0]);
+	    return ConciseSet<wah_mode>(*inputs[0]);
 	  }
 	  std::priority_queue<ConcisePtr> pq;
 	  for (size_t i = 0; i < n; i++) {
@@ -405,9 +415,9 @@ public:
 
 	    ConcisePtr x2 = pq.top();
 	    pq.pop();
-
-	    ConciseSet<wah_mode> *buffer = x1.ptr->logicalor(*x2.ptr);
-
+	    ConciseSet<wah_mode> * buffer = new ConciseSet<wah_mode>();
+	    x1.ptr->
+		logicalorToContainer(*(const ConciseSet<wah_mode> *)x2.ptr, *buffer);
 	    if (x1.own) {
 	      delete x1.ptr;
 	    }
@@ -422,7 +432,7 @@ public:
 	  ConcisePtr x2 = pq.top();
 	  pq.pop();
 
-	  ConciseSet<wah_mode> * container = x1.ptr->logicalor(*x2.ptr);
+	  ConciseSet<wah_mode>  container = x1.ptr->logicalor(*x2.ptr);
 
 	  if (x1.own) {
 	    delete x1.ptr;
