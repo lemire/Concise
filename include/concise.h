@@ -37,6 +37,10 @@ public:
 		return (words.size() + 1) * sizeof(uint32_t);
 	}
 
+        void compact() {
+                words.shrink_to_fit();
+        }
+
 	void swap(ConciseSet<wah_mode> & other) {
 		this->words.swap(other.words);
 		uint32_t tmplast = this->last;
