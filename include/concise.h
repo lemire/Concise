@@ -192,7 +192,6 @@ public:
 		}
 		if ((int32_t) e == last)
 			return;
-		assert(false); // we do not test this case SHIT
 		// check if the element can be put in a literal word
 		uint32_t blockIndex = maxLiteralLengthDivision(e);
 		uint32_t bitPosition = maxLiteralLengthModulus(e);
