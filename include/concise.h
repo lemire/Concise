@@ -346,24 +346,24 @@ public:
 	}
 
 	uint32_t size() const {
-		uint32_t size = 0;
+		uint32_t cardsize = 0;
 		for (int i = 0; i <= lastWordIndex; i++) {
 			uint32_t w = words[i];
 			if (isLiteral(w)) {
-				size += getLiteralBitCount(w);
+				cardsize += getLiteralBitCount(w);
 			} else {
 				if (isZeroSequence(w)) {
 					if (!isSequenceWithNoBits(w))
-						size++;
+						cardsize++;
 				} else {
-					size += maxLiteralLengthMultiplication(
+					cardsize += maxLiteralLengthMultiplication(
 							getSequenceCount(w) + 1);
 					if (!isSequenceWithNoBits(w))
-						size--;
+						cardsize--;
 				}
 			}
 		}
-		return size;
+		return cardsize;
 	}
 
 	static ConciseSet<wah_mode>  fast_logicalor(size_t n, const ConciseSet<wah_mode> **inputs) {
