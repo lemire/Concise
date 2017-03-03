@@ -38,6 +38,9 @@ constexpr static uint32_t SEQUENCE_BIT = UINT32_C(0x40000000);
  * Calculates the modulus division by 31 in a faster way than using n % 31
  */
 static inline uint32_t maxLiteralLengthModulus(uint32_t n) {
+    return n % 31;
+    // following code is a bad idea. Compilers can compiler n % 31 to something faster.
+    /**
     uint32_t m = (n & UINT32_C(0xC1F07C1F)) + ((n >> 5) & UINT32_C(0xC1F07C1F));
     m = (m >> 15) + (m & UINT32_C(0x00007FFF));
     if (m <= 31)
@@ -56,6 +59,7 @@ static inline uint32_t maxLiteralLengthModulus(uint32_t n) {
         return m == 31 ? 0 : m;
     m = (m >> 5) + (m & UINT32_C(0x0000001F));
     return m == 31 ? 0 : m;
+    **/
 }
 
 
@@ -64,7 +68,7 @@ static inline uint32_t maxLiteralLengthModulus(uint32_t n) {
  * Calculates the multiplication by 31 in a faster way than using n * 31
  */
 static inline uint32_t maxLiteralLengthMultiplication(uint32_t n) {
-    return (n << 5) - n;
+    return (n << 5) - n; // a good compiler should do this on its own
 }
 
 /**

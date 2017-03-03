@@ -60,6 +60,7 @@ public:
 		logicalandToContainer(other, res);
 		return res;
 	}
+  
 	void logicalandToContainer(const ConciseSet<wah_mode> & other, ConciseSet<wah_mode> & res) const {
 		if (isEmpty() || other.isEmpty()) {
 			res.clear();
