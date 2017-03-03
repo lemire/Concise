@@ -10,13 +10,16 @@
 template<bool wah_mode>
 class WordIterator;
 
+template<bool wah_mode>
+class ConciseSetBitForwardIterator;
+
 /**
  * wah_mode:
  * true for a WAH bitset,
  * false for a Concise bitset,
  */
 template<bool wah_mode = false>
-class ConciseSet {
+class ConciseSet  {
 
 public:
 
@@ -116,18 +119,18 @@ public:
 	}
 
 
-	ConciseSet<wah_mode> logicalandNot(const ConciseSet<wah_mode> & other) const {
+	ConciseSet<wah_mode> logicalandnot(const ConciseSet<wah_mode> & other) const {
 		ConciseSet<wah_mode> res;
-		logicalandNotToContainer(other, res);
+		logicalandnotToContainer(other, res);
 		return res;
 	}
 
   ConciseSet<wah_mode> operator-(const ConciseSet<wah_mode> &o) const {
-    return logicalandNot(o);
+    return logicalandnot(o);
   }
 
 
-	void logicalandNotToContainer(const ConciseSet<wah_mode> & other, ConciseSet<wah_mode> & res) const {
+	void logicalandnotToContainer(const ConciseSet<wah_mode> & other, ConciseSet<wah_mode> & res) const {
 		if (isEmpty()) {
 			res.clear();
 			return;
@@ -145,23 +148,23 @@ public:
 			if (!thisItr.IsLiteral) {
 				if (!otherItr.IsLiteral) {
 					int minCount = std::min(thisItr.count, otherItr.count);
-					res.appendFill(minCount, thisItr.word & ~otherItr.word);
+					res.appendFill(minCount, concise_andnot(thisItr.word,otherItr.word));
 					if (!thisItr.prepareNext(minCount)
 							| !otherItr.prepareNext(minCount)) // NOT ||
 						break;
 				} else {
-					res.appendLiteral(thisItr.toLiteral() & ~otherItr.word);
+					res.appendLiteral(concise_andnot(thisItr.toLiteral(), otherItr.word));
 					thisItr.word--;
 					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
 						break;
 				}
 			} else if (!otherItr.IsLiteral) {
-				res.appendLiteral(thisItr.word & ~otherItr.toLiteral());
+				res.appendLiteral(concise_andnot(thisItr.word,otherItr.toLiteral()));
 				otherItr.word--;
 				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
 					break;
 			} else {
-				res.appendLiteral(thisItr.word & ~otherItr.word);
+				res.appendLiteral(concise_andnot(thisItr.word,otherItr.word));
 				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
 					break;
 			}
@@ -270,23 +273,23 @@ public:
 			if (!thisItr.IsLiteral) {
 				if (!otherItr.IsLiteral) {
 					int minCount = std::min(thisItr.count, otherItr.count);
-					res.appendFill(minCount, thisItr.word ^ otherItr.word);
+					res.appendFill(minCount, concise_xor(thisItr.word , otherItr.word));
 					if (!thisItr.prepareNext(minCount)
 							| !otherItr.prepareNext(minCount)) // NOT ||
 						break;
 				} else {
-					res.appendLiteral(thisItr.toLiteral() ^ otherItr.word);
+					res.appendLiteral(concise_xor(thisItr.toLiteral() , otherItr.word));
 					thisItr.word--;
 					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
 						break;
 				}
 			} else if (!otherItr.IsLiteral) {
-				res.appendLiteral(thisItr.word ^ otherItr.toLiteral());
+				res.appendLiteral(concise_xor(thisItr.word, otherItr.toLiteral()));
 				otherItr.word--;
 				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
 					break;
 			} else {
-				res.appendLiteral(thisItr.word ^ otherItr.word);
+				res.appendLiteral(concise_xor(thisItr.word , otherItr.word));
 				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
 					break;
 			}
@@ -426,8 +429,13 @@ public:
 
 		printf("}\n");
 	}
+  typedef  ConciseSetBitForwardIterator<wah_mode> const_iterator;
 
-	bool contains(uint32_t o) const {
+  const_iterator begin() const ;
+
+  const_iterator end() const ;
+
+  bool contains(uint32_t o) const {
 		if (isEmpty() || ((int32_t) o > last) || (o > MAX_ALLOWED_INTEGER)) {
 			return false;
 		}
@@ -807,6 +815,9 @@ public:
 		return index > parent.lastWordIndex;
 	}
 
+	void exhaust() {
+		index = parent.lastWordIndex + 1;
+	}
 	bool prepareNext(int c) {
 		count -= c;
 		if (count == 0)
@@ -881,3 +892,130 @@ public:
 		return true;
 	}
 };
+
+
+
+template<bool wah_mode>
+class ConciseSetBitForwardIterator  {
+public:
+  typedef std::forward_iterator_tag iterator_category;
+  typedef uint32_t *pointer;
+  typedef uint32_t &reference_type;
+  typedef uint32_t value_type;
+  typedef int32_t difference_type;
+  typedef ConciseSetBitForwardIterator type_of_iterator;
+
+
+  /**
+   * Provides the location of the set bit.
+   */
+  value_type operator*() const {
+    return current_value;
+  }
+
+  bool operator<(const type_of_iterator &o) {
+    if (!has_value) return false;
+    if (!o.has_value) return true;
+    return current_value < *o;
+  }
+
+  bool operator<=(const type_of_iterator &o) {
+    if (!o.has_value) return true;
+    if (!has_value) return false;
+    return current_value <= *o;
+  }
+
+  bool operator>(const type_of_iterator &o) {
+    if (!o.has_value) return false;
+    if (!has_value) return true;
+    return current_value > *o;
+  }
+
+  bool operator>=(const type_of_iterator &o) {
+    if (!has_value) return true;
+    if (!o.has_value) return false;
+    return current_value >= *o;
+  }
+
+  type_of_iterator &operator++() {// ++i, must returned inc. value
+    advanceToNextBit();
+    return *this;
+  }
+
+  type_of_iterator operator++(int) {// i++, must return orig. value
+    ConciseSetBitForwardIterator<wah_mode> orig(*this);
+    advanceToNextBit();
+    return orig;
+  }
+
+  bool operator==(const ConciseSetBitForwardIterator &o) {
+    if((has_value == false) && (o.has_value == false)) return true;
+    return (current_value == *o) && (has_value == o.has_value);
+  }
+
+  bool operator!=(const ConciseSetBitForwardIterator &o) {
+    return !(*this == o);
+  }
+  ConciseSetBitForwardIterator(const ConciseSet<wah_mode> & parent, bool exhausted = false) : word_location(0), current_value(0), has_value(true), word_value(0),  i(parent) {
+    if(exhausted) {
+        i.exhaust();
+    }
+    word_location = -1; // we will automatically advance to zero
+    advanceToNextBit();
+  }
+
+  void advanceToNextBit() {
+      if (word_value == 0) {
+        word_location++;// one word exhausted
+        while(!i.exhausted()) {
+          if (i.IsLiteral) {
+            word_value = getLiteralBits(i.word);
+            i.prepareNext(1);
+            break;
+          }
+          word_value = getLiteralBits(i.toLiteral());
+          if(word_value == 0) {
+            word_location += i.count;
+            i.prepareNext(i.count);
+          } else {
+            i.word --;
+            i.prepareNext(1);
+            break;
+          }
+        }
+      }
+      if(word_value != 0) {
+        uint32_t t = word_value & (-word_value);
+        has_value = true;
+        current_value = word_location * 32 + __builtin_popcount(t - 1);
+        word_value ^= t;
+      } else {
+        has_value = false;
+      }
+  }
+
+
+  ConciseSetBitForwardIterator& operator=(const ConciseSetBitForwardIterator &o) = default;
+  ConciseSetBitForwardIterator& operator=(ConciseSetBitForwardIterator &&o) = default;
+
+  ~ConciseSetBitForwardIterator() = default;
+
+  ConciseSetBitForwardIterator(
+      const ConciseSetBitForwardIterator &o) : i(o.i) {
+  }
+  uint32_t word_location;
+  uint32_t current_value;
+  bool has_value;
+  uint32_t word_value;
+  WordIterator<wah_mode> i;
+};
+
+template<bool wah_mode>
+inline ConciseSetBitForwardIterator<wah_mode> ConciseSet<wah_mode>::begin() const {
+      return ConciseSetBitForwardIterator<wah_mode>(*this);
+}
+
+template<bool wah_mode>
+inline ConciseSetBitForwardIterator<wah_mode> ConciseSet<wah_mode>::end() const {
+      return ConciseSetBitForwardIterator<wah_mode>(*this, true);
+}
