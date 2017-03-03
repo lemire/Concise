@@ -1,4 +1,5 @@
 # Concise
+[![Build Status](https://travis-ci.org/lemire/Concise.png)](https://travis-ci.org/lemire/Concise)
 
 C++ implementation of CONCISE (COmpressed 'N' Composable Integer SEt) and WAH compressed bitsets.
 The implementation is loosely based on Colantonio's original Java code.
