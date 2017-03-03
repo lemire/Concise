@@ -60,7 +60,13 @@ public:
 		logicalandToContainer(other, res);
 		return res;
 	}
-  
+
+
+  ConciseSet<wah_mode> operator&(const ConciseSet<wah_mode> &o) const {
+    return logicaland(o);
+  }
+
+
 	void logicalandToContainer(const ConciseSet<wah_mode> & other, ConciseSet<wah_mode> & res) const {
 		if (isEmpty() || other.isEmpty()) {
 			res.clear();
@@ -96,9 +102,71 @@ public:
 					break;
 			}
 		}
-
 		bool invalidLast = true;
+		// remove trailing zeros
+		res.trimZeros();
+		if (res.isEmpty())
+			return;
 
+		// compute the greatest element
+		if (invalidLast)
+			res.updateLast();
+
+		return;
+	}
+
+
+	ConciseSet<wah_mode> logicalandNot(const ConciseSet<wah_mode> & other) const {
+		ConciseSet<wah_mode> res;
+		logicalandNotToContainer(other, res);
+		return res;
+	}
+
+  ConciseSet<wah_mode> operator-(const ConciseSet<wah_mode> &o) const {
+    return logicalandNot(o);
+  }
+
+
+	void logicalandNotToContainer(const ConciseSet<wah_mode> & other, ConciseSet<wah_mode> & res) const {
+		if (isEmpty()) {
+			res.clear();
+			return;
+		}
+    if (other.isEmpty()) {
+      res = *this;
+      return;
+    }
+		res.words.resize( 3 + this->lastWordIndex + other.lastWordIndex);
+
+		// scan "this" and "other"
+		WordIterator<wah_mode> thisItr(*this);
+		WordIterator<wah_mode> otherItr(other);
+		while (true) {
+			if (!thisItr.IsLiteral) {
+				if (!otherItr.IsLiteral) {
+					int minCount = std::min(thisItr.count, otherItr.count);
+					res.appendFill(minCount, thisItr.word & ~otherItr.word);
+					if (!thisItr.prepareNext(minCount)
+							| !otherItr.prepareNext(minCount)) // NOT ||
+						break;
+				} else {
+					res.appendLiteral(thisItr.toLiteral() & ~otherItr.word);
+					thisItr.word--;
+					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
+						break;
+				}
+			} else if (!otherItr.IsLiteral) {
+				res.appendLiteral(thisItr.word & ~otherItr.toLiteral());
+				otherItr.word--;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
+					break;
+			} else {
+				res.appendLiteral(thisItr.word & ~otherItr.word);
+				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
+					break;
+			}
+		}
+		bool invalidLast = true;
 		// remove trailing zeros
 		res.trimZeros();
 		if (res.isEmpty())
@@ -117,13 +185,18 @@ public:
 		return res;
 	}
 
+  ConciseSet<wah_mode> operator|(const ConciseSet<wah_mode> &o) const {
+    return logicalor(o);
+  }
+
+
 	void logicalorToContainer(const ConciseSet<wah_mode> & other, ConciseSet & res) const {
 		if (this->isEmpty()) {
 			res = other;
 			return;
 		}
 		if (other.isEmpty()) {
-			res.clear();
+			res = *this;
 			return;
 		}
 		res.words.resize( 3 + this->lastWordIndex + other.lastWordIndex);
@@ -155,26 +228,84 @@ public:
 					break;
 			}
 		}
-
 		bool invalidLast = true;
-
 		res.last = std::max(this->last, other.last);
 		invalidLast = false;
 		invalidLast |= thisItr.flush(res);
 		invalidLast |= otherItr.flush(res);
-
 		// remove trailing zeros
 		res.trimZeros();
 		if (res.isEmpty())
 			return;
-
 		// compute the greatest element
 		if (invalidLast)
 			res.updateLast();
-
 		return;
-
 	}
+
+	ConciseSet<wah_mode> logicalxor(const ConciseSet<wah_mode> & other) const {
+		ConciseSet<wah_mode> res;
+		logicalxorToContainer(other, res);
+		return res;
+	}
+
+  ConciseSet<wah_mode> operator^(const ConciseSet<wah_mode> &o) const {
+    return logicalor(o);
+  }
+
+	void logicalxorToContainer(const ConciseSet<wah_mode> & other, ConciseSet & res) const {
+		if (this->isEmpty()) {
+			res = other;
+			return;
+		}
+		if (other.isEmpty()) {
+			res = *this;
+			return;
+		}
+		res.words.resize( 3 + this->lastWordIndex + other.lastWordIndex);
+		// scan "this" and "other"
+		WordIterator<wah_mode> thisItr(*this);
+		WordIterator<wah_mode> otherItr(other);
+		while (true) {
+			if (!thisItr.IsLiteral) {
+				if (!otherItr.IsLiteral) {
+					int minCount = std::min(thisItr.count, otherItr.count);
+					res.appendFill(minCount, thisItr.word ^ otherItr.word);
+					if (!thisItr.prepareNext(minCount)
+							| !otherItr.prepareNext(minCount)) // NOT ||
+						break;
+				} else {
+					res.appendLiteral(thisItr.toLiteral() ^ otherItr.word);
+					thisItr.word--;
+					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
+						break;
+				}
+			} else if (!otherItr.IsLiteral) {
+				res.appendLiteral(thisItr.word ^ otherItr.toLiteral());
+				otherItr.word--;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
+					break;
+			} else {
+				res.appendLiteral(thisItr.word ^ otherItr.word);
+				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
+					break;
+			}
+		}
+		bool invalidLast = true;
+		res.last = std::max(this->last, other.last);
+		invalidLast = false;
+		invalidLast |= thisItr.flush(res);
+		invalidLast |= otherItr.flush(res);
+		// remove trailing zeros
+		res.trimZeros();
+		if (res.isEmpty())
+			return;
+		// compute the greatest element
+		if (invalidLast)
+			res.updateLast();
+		return;
+	}
+
 
 	void clear() {
 		reset();
@@ -204,7 +335,6 @@ public:
 					// bit already set
 					if ((w & (1 << bitPosition)) != 0)
 						return;
-
 					// By adding the bit we potentially create a sequence:
 					// -- If the literal is made up of all zeros, it definitely
 					//    cannot be part of a sequence (otherwise it would not have
@@ -223,12 +353,10 @@ public:
 						if (containsOnlyOneBit(~w) || w == ALL_ONES_LITERAL)
 							break;
 					}
-
 					// set the bit
 					words[i] |= 1 << bitPosition;
 					return;
 				}
-
 				blockIndex--;
 			} else {
 				if (wah_mode) {
@@ -250,7 +378,6 @@ public:
 				blockIndex -= getSequenceCount(w) + 1;
 			}
 		}
-
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to add it is by ORing
 		ConciseSet<wah_mode> tmp;

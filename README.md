@@ -12,7 +12,7 @@ make
 ./unit
 ```
 ## Other libraries
-
+- See CRoaring https://github.com/RoaringBitmap/CRoaring
 - See EWAHBoolArray https://github.com/lemire/EWAHBoolArray
 - Git itself uses compressed bitsets https://github.com/git/git/tree/master/ewah
 
