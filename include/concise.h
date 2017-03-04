@@ -87,7 +87,8 @@ public:
             !otherItr.prepareNext(1)) // do NOT use  "||"
           break;
       } else {
-        res.appendLiteral(thisItr.word & otherItr.word);
+        // Java code simply does thisItr.word & otherItr.word below
+        res.appendLiteral(concise_and(thisItr.word , otherItr.word));
         if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use "||"
           break;
       }
@@ -158,6 +159,7 @@ public:
       }
     }
     bool invalidLast = true;
+    invalidLast |= thisItr.flush(res);
     // remove trailing zeros
     res.trimZeros();
     if (res.isEmpty())
@@ -243,7 +245,7 @@ public:
   }
 
   ConciseSet<wah_mode> operator^(const ConciseSet<wah_mode> &o) const {
-    return logicalor(o);
+    return logicalxor(o);
   }
 
   void logicalxorToContainer(const ConciseSet<wah_mode> &other,
@@ -674,7 +676,7 @@ public:
   }
 
   void appendLiteral(uint32_t word) {
-    // when we have a zero sequence of the maximum lenght (that is,
+    // when we have a zero sequence of the maximum length (that is,
     // 00.00000.1111111111111111111111111 = 0x01FFFFFF), it could happen
     // that we try to append a zero literal because the result of the given
     // operation must be an

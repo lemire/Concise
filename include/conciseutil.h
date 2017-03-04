@@ -141,7 +141,13 @@ static inline int getFlippedBit(uint32_t word) {
   // set
   return ((word >> 25) & UINT32_C(0x0000001F)) - 1;
 }
+static inline uint32_t concise_or(uint32_t literal1, uint32_t literal2) {
+  return ALL_ZEROS_LITERAL | (literal1 | literal2);
+}
 
+static inline uint32_t concise_and(uint32_t literal1, uint32_t literal2) {
+  return ALL_ZEROS_LITERAL | (literal1 & literal2);
+}
 static inline uint32_t concise_xor(uint32_t literal1, uint32_t literal2) {
   return ALL_ZEROS_LITERAL | (literal1 ^ literal2);
 }
