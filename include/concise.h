@@ -987,7 +987,7 @@ public:
       if(word_value != 0) {
         uint32_t t = word_value & (-word_value);
         has_value = true;
-        current_value = word_location * 32 + __builtin_popcount(t - 1);
+        current_value = word_location * 31 + __builtin_popcount(t - 1);
         word_value ^= t;
       } else {
         has_value = false;

@@ -174,9 +174,26 @@ template<bool ewahmode>
 static bool equals(std::set<uint32_t> s, ConciseSet<ewahmode> c) {
 	if (s.size() != c.size())
 		return false;
+  // we go one way
 	for (std::set<uint32_t>::iterator i = s.begin(); i != s.end(); i++) {
 		if (!c.contains(*i))
 			return false;
+	}
+  // we go both ways
+  std::set<uint32_t>::iterator a = s.begin();
+  auto b = c.begin();
+	for (; (a != s.end()) && (b != c.end()); a++, b++) {
+		if (*a != *b) {
+			return false;
+    }
+	}
+
+  // we go another way
+	for (auto i = c.begin(); i != c.end(); i++) {
+		if (s.find(*i) == s.end()) {
+      std::cout << " There is probably an issue with the ConciseSet iterators? " << std::endl;
+			return false;
+    }
 	}
 	return true;
 }
