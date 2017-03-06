@@ -4,29 +4,46 @@
 
 #include "concise.h"
 
-template <bool ewahmode> void heaportest() {
+
+template <bool wahmode> void checkflush() {
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
-  ConciseSet<ewahmode> *test[3];
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> c;
+  c.words[++c.lastWordIndex] = 1107296262;
+  c.words[++c.lastWordIndex] = 1442840578;
+  c.words[++c.lastWordIndex] = 1073741823;
+  c.words[++c.lastWordIndex] = 4294967295;
+  c.words[++c.lastWordIndex] = 4294832127;
+  c.words[++c.lastWordIndex] = 2147549183;
+  ConciseSet<wahmode>  res;
+  res.words.resize(c.words.size());
+  WordIterator<wahmode> thisItr(c);
+  thisItr.flush(res);
+  assert(c.size() == res.size());
+}
+
+template <bool wahmode> void heaportest() {
+  std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
+  ConciseSet<wahmode> *test[3];
+  ConciseSet<wahmode> test1;
   for (int k = 0; k < 100; k += 7)
     test1.add(k);
-  ConciseSet<ewahmode> test2;
+  ConciseSet<wahmode> test2;
   for (int k = 0; k < 100; k += 15)
     test2.add(k);
-  ConciseSet<ewahmode> test3;
+  ConciseSet<wahmode> test3;
   for (int k = 0; k < 100; k += 2)
     test3.add(k);
   test[0] = &test1;
   test[1] = &test2;
   test[2] = &test3;
-  ConciseSet<ewahmode> answer = ConciseSet<ewahmode>::fast_logicalor(
-      3, (const ConciseSet<ewahmode> **)&test[0]);
+  ConciseSet<wahmode> answer = ConciseSet<wahmode>::fast_logicalor(
+      3, (const ConciseSet<wahmode> **)&test[0]);
   assert(answer.size() == 60);
   size_t longcounter = 0;
   for (auto i = answer.begin(); i != answer.end(); ++i)
     longcounter++;
   assert(longcounter == 60);
-  ConciseSet<ewahmode> tmp;
+  ConciseSet<wahmode> tmp;
   tmp = answer.logicaland(test1);
   assert(tmp.size() == test1.size());
   tmp = answer.logicaland(test2);
@@ -35,9 +52,9 @@ template <bool ewahmode> void heaportest() {
   assert(tmp.size() == test3.size());
 }
 
-template <bool ewahmode> void basictest() {
+template <bool wahmode> void basictest() {
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> test1;
   test1.add(1);
   assert(test1.contains(1));
   test1.add(2);
@@ -49,7 +66,7 @@ template <bool ewahmode> void basictest() {
   test1.add(1000);
   assert(test1.contains(1000));
   assert(test1.size() == 5);
-  ConciseSet<ewahmode> test2;
+  ConciseSet<wahmode> test2;
   test2.add(0);
   assert(test2.contains(0));
   test2.add(2);
@@ -61,7 +78,7 @@ template <bool ewahmode> void basictest() {
   test2.add(3000);
   assert(test2.contains(3000));
   assert(test2.size() == 5);
-  ConciseSet<ewahmode> tmp;
+  ConciseSet<wahmode> tmp;
   tmp = test1.logicalor(test2);
   assert(tmp.size() == 7);
   tmp = test1.logicaland(test2);
@@ -71,10 +88,10 @@ template <bool ewahmode> void basictest() {
   tmp.shrink_to_fit();
 }
 
-template <bool ewahmode> void longtest() {
+template <bool wahmode> void longtest() {
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
 
-  ConciseSet<ewahmode> testc;
+  ConciseSet<wahmode> testc;
   for (int k = 0; k < 1000; ++k) {
     testc.add(k * 2);
     testc.add(k * 2 + 1);
@@ -84,7 +101,7 @@ template <bool ewahmode> void longtest() {
     assert(testc.contains(k * 2));
     assert(testc.contains(k * 2 + 1));
   }
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> test1;
   for (int k = 0; k < 1000; ++k) {
     test1.add(k * 2);
   }
@@ -93,14 +110,14 @@ template <bool ewahmode> void longtest() {
     assert(!test1.contains(k * 2 + 1));
   }
   assert(test1.size() == 1000);
-  ConciseSet<ewahmode> shouldbetest1;
+  ConciseSet<wahmode> shouldbetest1;
   shouldbetest1 = testc.logicaland(test1);
   assert(shouldbetest1.size() == 1000);
   for (int k = 0; k < 1000; ++k) {
     assert(shouldbetest1.contains(k * 2));
     assert(!shouldbetest1.contains(k * 2 + 1));
   }
-  ConciseSet<ewahmode> test2;
+  ConciseSet<wahmode> test2;
   for (int k = 0; k < 1000; ++k) {
     test2.add(k * 2 + 1);
   }
@@ -110,7 +127,7 @@ template <bool ewahmode> void longtest() {
   }
   assert(test2.size() == 1000);
 
-  ConciseSet<ewahmode> tmp;
+  ConciseSet<wahmode> tmp;
   tmp = test1.logicalor(test2);
   assert(tmp.size() == 2000);
   for (int k = 0; k < 1000; ++k) {
@@ -171,8 +188,8 @@ static std::set<uint32_t> intersect(std::set<uint32_t> s1,
   return answer;
 }
 
-template <bool ewahmode>
-static bool equals(std::set<uint32_t> s, ConciseSet<ewahmode> c) {
+template <bool wahmode>
+static bool equals(std::set<uint32_t> s, ConciseSet<wahmode> c) {
   if (s.size() != c.size())
     return false;
   // we go one way
@@ -200,11 +217,11 @@ static bool equals(std::set<uint32_t> s, ConciseSet<ewahmode> c) {
   return true;
 }
 
-template <bool ewahmode> void toytest() {
+template <bool wahmode> void toytest() {
 
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
 
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> test1;
   std::set<uint32_t> set1;
 
   for (int k = 0; k < 30; k += 3) {
@@ -212,7 +229,7 @@ template <bool ewahmode> void toytest() {
     set1.insert(k);
   }
 
-  ConciseSet<ewahmode> test2;
+  ConciseSet<wahmode> test2;
   std::set<uint32_t> set2;
   for (int k = 0; k < 30; k += 5) {
     test2.add(k);
@@ -222,32 +239,32 @@ template <bool ewahmode> void toytest() {
   std::set<uint32_t> trueinter = intersect(set1, set2);
   std::set<uint32_t> truesubtract = subtract(set1, set2);
   std::set<uint32_t> truesymsubtract = symmetrically_subtract(set1, set2);
-  ConciseSet<ewahmode> union1;
-  ConciseSet<ewahmode> union2;
+  ConciseSet<wahmode> union1;
+  ConciseSet<wahmode> union2;
   union1 = test1.logicalor(test2);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
   assert(equals(trueunion, union2));
-  ConciseSet<ewahmode> intersect1;
-  ConciseSet<ewahmode> intersect2;
+  ConciseSet<wahmode> intersect1;
+  ConciseSet<wahmode> intersect2;
   intersect1 = test1.logicaland(test2);
   intersect2 = test1.logicaland(test2);
   assert(equals(trueinter, intersect1));
   assert(equals(trueinter, intersect2));
-  ConciseSet<ewahmode> symsubtract1;
-  ConciseSet<ewahmode> symsubtract2;
+  ConciseSet<wahmode> symsubtract1;
+  ConciseSet<wahmode> symsubtract2;
   symsubtract1 = test1.logicalxor(test2);
   symsubtract2 = test1.logicalxor(test2);
   assert(equals(truesymsubtract, symsubtract1));
   assert(equals(truesymsubtract, symsubtract2));
-  ConciseSet<ewahmode> subtract1;
-  ConciseSet<ewahmode> subtract2;
+  ConciseSet<wahmode> subtract1;
+  ConciseSet<wahmode> subtract2;
   subtract1 = test1.logicalandnot(test2);
   subtract2 = test1.logicalandnot(test2);
   assert(equals(truesubtract, subtract1));
   assert(equals(truesubtract, subtract2));
 }
-template <bool ewahmode> void iteratortest() {
+template <bool wahmode> void iteratortest() {
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
 
   uint32_t data[] = {3515,   5185,   7796,   33347,  45641,  51779,  53188,
@@ -255,7 +272,7 @@ template <bool ewahmode> void iteratortest() {
                      111016, 116633, 117789, 119044, 119103, 146771, 159597,
                      163210, 181124, 182343, 187302, 187876, 191494};
   const int N = sizeof(data) / sizeof(uint32_t);
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> test1;
   for (int k = 0; k < N; ++k) {
     test1.add(data[k]);
   }
@@ -269,11 +286,11 @@ template <bool ewahmode> void iteratortest() {
   assert(c == N);
 }
 
-template <bool ewahmode> void variedtest() {
+template <bool wahmode> void variedtest() {
 
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
 
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> test1;
   std::set<uint32_t> set1;
 
   for (int k = 0; k < 1000; ++k) {
@@ -293,7 +310,7 @@ template <bool ewahmode> void variedtest() {
     set1.insert(k);
   }
 
-  ConciseSet<ewahmode> test2;
+  ConciseSet<wahmode> test2;
   std::set<uint32_t> set2;
   for (int k = 0; k < 1100; k += 3) {
     test2.add(k);
@@ -316,33 +333,33 @@ template <bool ewahmode> void variedtest() {
   std::set<uint32_t> truesubtract = subtract(set1, set2);
   std::set<uint32_t> truesymsubtract = symmetrically_subtract(set1, set2);
 
-  ConciseSet<ewahmode> union1;
-  ConciseSet<ewahmode> union2;
+  ConciseSet<wahmode> union1;
+  ConciseSet<wahmode> union2;
   union1 = test1.logicalor(test2);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
   assert(equals(trueunion, union2));
-  ConciseSet<ewahmode> intersect1;
-  ConciseSet<ewahmode> intersect2;
+  ConciseSet<wahmode> intersect1;
+  ConciseSet<wahmode> intersect2;
   intersect1 = test1.logicaland(test2);
   intersect2 = test1.logicaland(test2);
   assert(equals(trueinter, intersect1));
   assert(equals(trueinter, intersect2));
-  ConciseSet<ewahmode> symsubtract1;
-  ConciseSet<ewahmode> symsubtract2;
+  ConciseSet<wahmode> symsubtract1;
+  ConciseSet<wahmode> symsubtract2;
   symsubtract1 = test1.logicalxor(test2);
   symsubtract2 = test1.logicalxor(test2);
   assert(equals(truesymsubtract, symsubtract1));
   assert(equals(truesymsubtract, symsubtract2));
-  ConciseSet<ewahmode> subtract1;
-  ConciseSet<ewahmode> subtract2;
+  ConciseSet<wahmode> subtract1;
+  ConciseSet<wahmode> subtract2;
   subtract1 = test1.logicalandnot(test2);
   subtract2 = test1.logicalandnot(test2);
   assert(equals(truesubtract, subtract1));
   assert(equals(truesubtract, subtract2));
 }
 
-template <bool ewahmode> void realtest() {
+template <bool wahmode> void realtest() {
 
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
 
@@ -445,7 +462,7 @@ template <bool ewahmode> void realtest() {
       622, 623, 625, 626, 628, 629, 630, 631, 632, 634, 635, 636};
   const int N2 = sizeof(data2) / sizeof(uint32_t);
 
-  ConciseSet<ewahmode> test1;
+  ConciseSet<wahmode> test1;
   std::set<uint32_t> set1;
 
   for (int k = 0; k < N1; ++k) {
@@ -453,7 +470,7 @@ template <bool ewahmode> void realtest() {
     set1.insert(data1[k]);
   }
 
-  ConciseSet<ewahmode> test2;
+  ConciseSet<wahmode> test2;
   std::set<uint32_t> set2;
   for (int k = 0; k < N2; ++k) {
     test2.add(data2[k]);
@@ -464,26 +481,26 @@ template <bool ewahmode> void realtest() {
   std::set<uint32_t> truesubtract = subtract(set1, set2);
   std::set<uint32_t> truesymsubtract = symmetrically_subtract(set1, set2);
 
-  ConciseSet<ewahmode> union1;
-  ConciseSet<ewahmode> union2;
+  ConciseSet<wahmode> union1;
+  ConciseSet<wahmode> union2;
   union1 = test1.logicalor(test2);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
   assert(equals(trueunion, union2));
-  ConciseSet<ewahmode> intersect1;
-  ConciseSet<ewahmode> intersect2;
+  ConciseSet<wahmode> intersect1;
+  ConciseSet<wahmode> intersect2;
   intersect1 = test1.logicaland(test2);
   intersect2 = test1.logicaland(test2);
   assert(equals(trueinter, intersect1));
   assert(equals(trueinter, intersect2));
-  ConciseSet<ewahmode> symsubtract1;
-  ConciseSet<ewahmode> symsubtract2;
+  ConciseSet<wahmode> symsubtract1;
+  ConciseSet<wahmode> symsubtract2;
   symsubtract1 = test1.logicalxor(test2);
   symsubtract2 = test1.logicalxor(test2);
   assert(equals(truesymsubtract, symsubtract1));
   assert(equals(truesymsubtract, symsubtract2));
-  ConciseSet<ewahmode> subtract1;
-  ConciseSet<ewahmode> subtract2;
+  ConciseSet<wahmode> subtract1;
+  ConciseSet<wahmode> subtract2;
   subtract1 = test1.logicalandnot(test2);
   subtract2 = test1.logicalandnot(test2);
   assert(equals(truesubtract, subtract1));
@@ -491,6 +508,8 @@ template <bool ewahmode> void realtest() {
 }
 
 int main() {
+  checkflush<true>();
+  checkflush<false>();
   iteratortest<true>();
   iteratortest<false>();
   heaportest<true>();
