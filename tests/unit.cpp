@@ -8,16 +8,18 @@
 template <bool wahmode> void checkflush() {
   std::cout << "[[[" << __PRETTY_FUNCTION__ << "]]]" << std::endl;
   ConciseSet<wahmode> c;
+  c.words.resize(100);
   c.words[++c.lastWordIndex] = 1107296262;
-  c.words[++c.lastWordIndex] = 1442840578;
+/*  c.words[++c.lastWordIndex] = 1442840578;
   c.words[++c.lastWordIndex] = 1073741823;
   c.words[++c.lastWordIndex] = 4294967295;
   c.words[++c.lastWordIndex] = 4294832127;
-  c.words[++c.lastWordIndex] = 2147549183;
+  c.words[++c.lastWordIndex] = 2147549183;*/
   ConciseSet<wahmode>  res;
   res.words.resize(c.words.size());
   WordIterator<wahmode> thisItr(c);
   thisItr.flush(res);
+  for(int i = 0; i <= res.lastWordIndex; i++) std::cout << res.words[i] <<std::endl;
   assert(c.size() == res.size());
 }
 
