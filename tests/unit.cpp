@@ -578,7 +578,7 @@ template <bool wahmode> void realtest() {
 
 int main() {
   checkflush<false>();
-  // checkflush<true>();// not actually safe (bug in original code)
+  // checkflush<true>();// not actually safe (limitation in original code)
   iteratortest<true>();
   iteratortest<false>();
   heaportest<true>();
