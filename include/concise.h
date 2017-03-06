@@ -329,7 +329,7 @@ public:
         // check if the current literal word is the "right" one
         if (blockIndex == 0) {
           // bit already set
-          if ((w & (1 << bitPosition)) != 0)
+          if ((w & (UINT32_C(1) << bitPosition)) != 0)
             return;
           // By adding the bit we potentially create a sequence:
           // -- If the literal is made up of all zeros, it definitely
@@ -350,27 +350,27 @@ public:
               break;
           }
           // set the bit
-          words[i] |= 1 << bitPosition;
+          words[i] |= UINT32_C(1) << bitPosition;
           return;
         }
         blockIndex--;
       } else {
         if (wah_mode) {
-          if (isOneSequence(w) && (blockIndex <= getSequenceCount(w)))
+          if (isOneSequence(w) && (blockIndex <= getSequenceCount<wah_mode>(w)))
             return;
         } else {
           // if we are at the beginning of a sequence, and it is
           // a set bit, the bit already exists
-          if (blockIndex == 0 && (getLiteral(w) & (1 << bitPosition)) != 0)
+          if (blockIndex == 0 && (getLiteral(w) & (UINT32_C(1) << bitPosition)) != 0)
             return;
 
           // if we are in the middle of a sequence of 1's, the bit already exist
-          if ((blockIndex > 0) && (blockIndex <= getSequenceCount(w)) &&
+          if ((blockIndex > 0) && (blockIndex <= getSequenceCount<wah_mode>(w)) &&
               isOneSequence(w))
             return;
         }
         // next word
-        blockIndex -= getSequenceCount(w) + 1;
+        blockIndex -= getSequenceCount<wah_mode>(w) + 1;
       }
     }
     // the bit is in the middle of a sequence or it may cause a literal to
@@ -379,6 +379,15 @@ public:
     tmp.add(e);
     ConciseSet<wah_mode> newbitmap = this->logicalor(tmp);
     this->swap(newbitmap);
+  }
+
+  void dump_buffer_content() const {
+    printf("{buffer content  \n");
+    for (int i = 0; i <= lastWordIndex; i++) {
+            const uint32_t w = words[i];
+            std::cout << w << std::endl;
+    }
+    printf("}\n");
   }
 
   void describe() const {
@@ -401,7 +410,7 @@ public:
           printf("concise word with single 1-bit at %d (none if -1), \n",
                  ((w >> 25) - 1));
         }
-        printf(" length= %u 31-bit words} \n", getSequenceCount(w) + 1);
+        printf(" length= %u 31-bit words} \n", getSequenceCount<wah_mode>(w) + 1);
         break;
       case UINT32_C(0x40000000): // ONE SEQUENCE
         printf("{one sequence:");
@@ -409,7 +418,7 @@ public:
           printf("concise word with single 0-bit at %d (none if -1), \n",
                  ((UINT32_C(0x0000001F) & (w >> 25)) - 1));
         }
-        printf(" length= %u 31-bit words }\n", getSequenceCount(w) + 1);
+        printf(" length= %u 31-bit words }\n", getSequenceCount<wah_mode>(w) + 1);
         break;
       default:
         assert(false);
@@ -443,14 +452,14 @@ public:
       case UINT32_C(0xC0000000): // LITERAL
         // check if the current literal word is the "right" one
         if (block == 0)
-          return (w & (1 << bit)) != 0;
+          return (w & (UINT32_C(1) << bit)) != 0;
         block--;
         break;
       case UINT32_C(0x00000000): // ZERO SEQUENCE
         if (!wah_mode)
           if ((block == 0) && ((w >> 25) - 1) == bit)
             return true;
-        block -= getSequenceCount(w) + 1;
+        block -= getSequenceCount<wah_mode>(w) + 1;
         if (block < 0)
           return false;
         break;
@@ -458,7 +467,7 @@ public:
         if (!wah_mode)
           if ((block == 0) && (((UINT32_C(0x0000001F) & (w >> 25)) - 1)) == bit)
             return false;
-        block -= getSequenceCount(w) + 1;
+        block -= getSequenceCount<wah_mode>(w) + 1;
         if (block < 0)
           return true;
         break;
@@ -479,7 +488,7 @@ public:
           if (!isSequenceWithNoBits(w))
             cardsize++;
         } else {
-          cardsize += maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
+          cardsize += maxLiteralLengthMultiplication(getSequenceCount<wah_mode>(w) + 1);
           if (!isSequenceWithNoBits(w))
             cardsize--;
         }
@@ -582,7 +591,7 @@ public:
     // equivalent
     // NOTE: ">> 1" is required since 00000 represents no bits and 00001 the LSB
     // bit set
-    uint32_t literal = (1 << (word >> 25)) >> 1;
+    uint32_t literal = (UINT32_C(1) << (word >> 25)) >> 1;
     return isZeroSequence(word) ? (ALL_ZEROS_LITERAL | literal)
                                 : (ALL_ONES_LITERAL & ~literal);
   }
@@ -644,7 +653,7 @@ public:
       }
       last = i;
       words[lastWordIndex] =
-          ALL_ZEROS_LITERAL | (1 << maxLiteralLengthModulus(i));
+          ALL_ZEROS_LITERAL | (UINT32_C(1) << maxLiteralLengthModulus(i));
       return;
     }
 
@@ -662,9 +671,9 @@ public:
         ensureCapacity(lastWordIndex + 2);
         appendFill(zeroBlocks, 0);
       }
-      appendLiteral(ALL_ZEROS_LITERAL | 1 << bit);
+      appendLiteral(ALL_ZEROS_LITERAL | UINT32_C(1) << bit);
     } else {
-      words[lastWordIndex] |= 1 << bit;
+      words[lastWordIndex] |= UINT32_C(1) << bit;
       if (words[lastWordIndex] == ALL_ONES_LITERAL) {
         lastWordIndex--;
         appendLiteral(ALL_ONES_LITERAL);
@@ -727,13 +736,11 @@ public:
       appendLiteral(fillType == 0 ? ALL_ZEROS_LITERAL : ALL_ONES_LITERAL);
       return;
     }
-
     // empty set
     if (lastWordIndex < 0) {
       words[lastWordIndex = 0] = fillType | (length - 1);
       return;
     }
-
     uint32_t lastWord = words[lastWordIndex];
     if (isLiteral(lastWord)) {
       if (fillType == 0 && lastWord == ALL_ZEROS_LITERAL) {
@@ -753,10 +760,11 @@ public:
         words[++lastWordIndex] = fillType | (length - 1);
       }
     } else {
-      if ((lastWord & UINT32_C(0xC0000000)) == fillType)
+      if ((lastWord & UINT32_C(0xC0000000)) == fillType) {
         words[lastWordIndex] += length;
-      else
+      } else {
         words[++lastWordIndex] = fillType | (length - 1);
+      }
     }
   }
 
@@ -767,7 +775,7 @@ public:
       if (isLiteral(w))
         last += MAX_LITERAL_LENGTH;
       else
-        last += maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
+        last += maxLiteralLengthMultiplication(getSequenceCount<wah_mode>(w) + 1);
     }
 
     uint32_t w = words[lastWordIndex];
@@ -815,10 +823,10 @@ public:
     word = parent.words[index];
     IsLiteral = isLiteral(word);
     if (!IsLiteral) {
-      count = getSequenceCount(word) + 1;
+      count = getSequenceCount<wah_mode>(word) + 1 ;
       if (!wah_mode && !isSequenceWithNoBits(word)) {
         IsLiteral = true;
-        int bit = (1 << ((word >> 25) % 32)) >> 1;
+        int bit = (UINT32_C(1) << ((word >> 25) % 32)) >> 1;
         word = isZeroSequence(word) ? (ALL_ZEROS_LITERAL | bit)
                                     : (ALL_ONES_LITERAL & ~bit);
       }
@@ -853,10 +861,11 @@ public:
 
     // try to "compress" the first few words
     do {
-      if (IsLiteral)
+      if (IsLiteral) {
         s.appendLiteral(word);
-      else
+      } else {
         s.appendFill(count, word);
+      }
     } while (prepareNext() && s.words[s.lastWordIndex] != word);
 
     // copy remaining words "as-is"

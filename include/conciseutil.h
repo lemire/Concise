@@ -111,10 +111,12 @@ static inline bool isSequenceWithNoBits(uint32_t word) {
 /**
  * Gets the number of blocks of 1's or 0's stored in a sequence word
  */
+template <bool wah_mode>
 static inline uint32_t getSequenceCount(uint32_t word) {
   // get the 25 LSB bits
-  return word & UINT32_C(0x01FFFFFF);
+  return word & (wah_mode? UINT32_C(0x3FFFFFFF) : UINT32_C(0x01FFFFFF));
 }
+
 
 /**
  * Clears the (un)set bit in a sequence
