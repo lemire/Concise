@@ -431,7 +431,7 @@ public:
 
   const_iterator begin() const;
 
-  const_iterator end() const;
+  const_iterator & end() const;
 
   bool contains(uint32_t o) const {
     if (isEmpty() || ((int32_t)o > last) || (o > MAX_ALLOWED_INTEGER)) {
@@ -1018,7 +1018,8 @@ ConciseSet<wah_mode>::begin() const {
 }
 
 template <bool wah_mode>
-inline ConciseSetBitForwardIterator<wah_mode>
+inline ConciseSetBitForwardIterator<wah_mode>&
 ConciseSet<wah_mode>::end() const {
-  return ConciseSetBitForwardIterator<wah_mode>(*this, true);
+  static ConciseSetBitForwardIterator<wah_mode> endp(*this, true);
+  return endp;
 }
