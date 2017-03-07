@@ -545,6 +545,13 @@ template <bool wahmode> void realtest() {
     test2.add(data2[k]);
     set2.insert(data2[k]);
   }
+
+
+  assert(test1.equals(test1));
+  assert(test2.equals(test2));
+  assert(!test2.equals(test1));
+  assert(!test1.equals(test2));
+
   std::set<uint32_t> trueunion = unite(set1, set2);
   std::set<uint32_t> trueinter = intersect(set1, set2);
   std::set<uint32_t> truesubtract = subtract(set1, set2);
@@ -552,6 +559,7 @@ template <bool wahmode> void realtest() {
 
   ConciseSet<wahmode> union1;
   ConciseSet<wahmode> union2;
+
   union1 = test1.logicalor(test2);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
