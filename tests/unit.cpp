@@ -113,11 +113,17 @@ template <bool wahmode> void heaportest() {
     longcounter++;
   assert(longcounter == 60);
   ConciseSet<wahmode> tmp;
+  size_t expectedandsize1 = answer.logicalandCount(test1);
   tmp = answer.logicaland(test1);
+  assert(expectedandsize1 == tmp.size());
   assert(tmp.size() == test1.size());
+  size_t expectedandsize2 = answer.logicalandCount(test2);
   tmp = answer.logicaland(test2);
+  assert(expectedandsize2 == tmp.size());
   assert(tmp.size() == test2.size());
+  size_t expectedandsize3 = answer.logicalandCount(test3);
   tmp = answer.logicaland(test3);
+  assert(expectedandsize3 == tmp.size());
   assert(tmp.size() == test3.size());
 }
 
@@ -150,6 +156,7 @@ template <bool wahmode> void basictest() {
   ConciseSet<wahmode> tmp;
   tmp = test1.logicalor(test2);
   assert(tmp.size() == 7);
+  assert(test1.logicalandCount(test2) == 3);
   tmp = test1.logicaland(test2);
   assert(tmp.size() == 3);
   tmp.add(100000);
@@ -180,6 +187,7 @@ template <bool wahmode> void longtest() {
   }
   assert(test1.size() == 1000);
   ConciseSet<wahmode> shouldbetest1;
+  assert(testc.logicalandCount(test1) == 1000);
   shouldbetest1 = testc.logicaland(test1);
   assert(shouldbetest1.size() == 1000);
   for (int k = 0; k < 1000; ++k) {
@@ -203,9 +211,12 @@ template <bool wahmode> void longtest() {
     assert(tmp.contains(k * 2));
     assert(tmp.contains(k * 2 + 1));
   }
+  assert(tmp.intersects(test2));
+  assert(tmp.logicalandCount(test2) == 1000);
   tmp = tmp.logicaland(test2);
   assert(tmp.size() == 1000);
-
+  assert(test1.intersects(test2) == false);
+  assert(test1.logicalandCount(test2) == 0);
   tmp = test1.logicaland(test2);
   assert(tmp.size() == 0);
 }
@@ -316,7 +327,9 @@ template <bool wahmode> void toytest() {
   assert(equals(trueunion, union2));
   ConciseSet<wahmode> intersect1;
   ConciseSet<wahmode> intersect2;
+  size_t expinter1 = test1.logicalandCount(test2);
   intersect1 = test1.logicaland(test2);
+  assert(expinter1 == intersect1.size());
   intersect2 = test1.logicaland(test2);
   assert(equals(trueinter, intersect1));
   assert(equals(trueinter, intersect2));
@@ -410,7 +423,9 @@ template <bool wahmode> void variedtest() {
   assert(equals(trueunion, union2));
   ConciseSet<wahmode> intersect1;
   ConciseSet<wahmode> intersect2;
+  size_t expinter1 = test1.logicalandCount(test2);
   intersect1 = test1.logicaland(test2);
+  assert(expinter1 == intersect1.size());
   intersect2 = test1.logicaland(test2);
   assert(equals(trueinter, intersect1));
   assert(equals(trueinter, intersect2));
@@ -566,7 +581,9 @@ template <bool wahmode> void realtest() {
   assert(equals(trueunion, union2));
   ConciseSet<wahmode> intersect1;
   ConciseSet<wahmode> intersect2;
+  size_t expinter1 = test1.logicalandCount(test2);
   intersect1 = test1.logicaland(test2);
+  assert(expinter1 == intersect1.size());
   intersect2 = test1.logicaland(test2);
   assert(equals(trueinter, intersect1));
   assert(equals(trueinter, intersect2));

@@ -106,6 +106,85 @@ public:
     return;
   }
 
+  bool intersects(const ConciseSet<wah_mode> &other) const {
+    if (isEmpty() || other.isEmpty()) {
+      return 0;
+    }
+    // scan "this" and "other"
+    WordIterator<wah_mode> thisItr(*this);
+    WordIterator<wah_mode> otherItr(other);
+    while (true) {
+      if (!thisItr.IsLiteral) {
+        if (!otherItr.IsLiteral) {
+          int minCount = std::min(thisItr.count, otherItr.count);
+          if(concise_and(thisItr.word, otherItr.word) & SEQUENCE_BIT)
+                if(minCount > 0 ) return true;
+          if (!thisItr.prepareNext(minCount) |
+              !otherItr.prepareNext(minCount)) // NOT ||
+            break;
+        } else {
+          if( !isLiteralZero(thisItr.toLiteral() & otherItr.word)  ) return true;
+          thisItr.word--;
+          if (!thisItr.prepareNext(1) |
+              !otherItr.prepareNext()) // do NOT use "||"
+            break;
+        }
+      } else if (!otherItr.IsLiteral) {
+        if( !isLiteralZero(thisItr.word & otherItr.toLiteral())  ) return true;
+        otherItr.word--;
+        if (!thisItr.prepareNext() |
+            !otherItr.prepareNext(1)) // do NOT use  "||"
+          break;
+      } else {
+        // Java code simply does thisItr.word & otherItr.word below
+        if ( !isLiteralZero(concise_and(thisItr.word , otherItr.word))  ) return true;
+        if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use "||"
+          break;
+      }
+    }
+    return false;
+  }
+
+  size_t logicalandCount(const ConciseSet<wah_mode> &other) const {
+    if (isEmpty() || other.isEmpty()) {
+      return 0;
+    }
+    size_t answer = 0;
+    // scan "this" and "other"
+    WordIterator<wah_mode> thisItr(*this);
+    WordIterator<wah_mode> otherItr(other);
+    while (true) {
+      if (!thisItr.IsLiteral) {
+        if (!otherItr.IsLiteral) {
+          int minCount = std::min(thisItr.count, otherItr.count);
+          if(concise_and(thisItr.word, otherItr.word) & SEQUENCE_BIT)
+                answer += 31 * minCount;
+          if (!thisItr.prepareNext(minCount) |
+              !otherItr.prepareNext(minCount)) // NOT ||
+            break;
+        } else {
+          answer += getLiteralBitCount(thisItr.toLiteral() & otherItr.word);
+          thisItr.word--;
+          if (!thisItr.prepareNext(1) |
+              !otherItr.prepareNext()) // do NOT use "||"
+            break;
+        }
+      } else if (!otherItr.IsLiteral) {
+        answer += getLiteralBitCount(thisItr.word & otherItr.toLiteral());
+        otherItr.word--;
+        if (!thisItr.prepareNext() |
+            !otherItr.prepareNext(1)) // do NOT use  "||"
+          break;
+      } else {
+        // Java code simply does thisItr.word & otherItr.word below
+        answer += getLiteralBitCount(concise_and(thisItr.word , otherItr.word));
+        if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use "||"
+          break;
+      }
+    }
+    return answer;
+  }
+
   ConciseSet<wah_mode> logicalandnot(const ConciseSet<wah_mode> &other) const {
     ConciseSet<wah_mode> res;
     logicalandnotToContainer(other, res);
@@ -393,6 +472,8 @@ public:
     answer += otherItr.flushCount();
     return answer;
   }
+
+
 
   void clear() { reset(); }
 
