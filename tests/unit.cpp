@@ -154,6 +154,7 @@ template <bool wahmode> void basictest() {
   assert(test2.contains(3000));
   assert(test2.size() == 5);
   ConciseSet<wahmode> tmp;
+  assert(test1.logicalorCount(test2) == 7);
   tmp = test1.logicalor(test2);
   assert(tmp.size() == 7);
   assert(test1.logicalandCount(test2) == 3);
@@ -205,6 +206,7 @@ template <bool wahmode> void longtest() {
   assert(test2.size() == 1000);
 
   ConciseSet<wahmode> tmp;
+  assert(test1.logicalorCount(test2) == 2000);
   tmp = test1.logicalor(test2);
   assert(tmp.size() == 2000);
   for (int k = 0; k < 1000; ++k) {
@@ -321,7 +323,9 @@ template <bool wahmode> void toytest() {
   std::set<uint32_t> truesymsubtract = symmetrically_subtract(set1, set2);
   ConciseSet<wahmode> union1;
   ConciseSet<wahmode> union2;
+  size_t expunion1 = test1.logicalorCount(test2);
   union1 = test1.logicalor(test2);
+  assert(union1.size() == expunion1);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
   assert(equals(trueunion, union2));
@@ -417,7 +421,9 @@ template <bool wahmode> void variedtest() {
 
   ConciseSet<wahmode> union1;
   ConciseSet<wahmode> union2;
+  size_t expunion1 = test1.logicalorCount(test2);
   union1 = test1.logicalor(test2);
+  assert(union1.size() == expunion1);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
   assert(equals(trueunion, union2));
@@ -575,7 +581,9 @@ template <bool wahmode> void realtest() {
   ConciseSet<wahmode> union1;
   ConciseSet<wahmode> union2;
 
+  size_t expunion1 = test1.logicalorCount(test2);
   union1 = test1.logicalor(test2);
+  assert(union1.size() == expunion1);
   union2 = test1.logicalor(test2);
   assert(equals(trueunion, union1));
   assert(equals(trueunion, union2));

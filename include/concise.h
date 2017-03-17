@@ -473,7 +473,49 @@ public:
     return answer;
   }
 
-
+  size_t logicalorCount(const ConciseSet<wah_mode> &other) const {
+    if (this->isEmpty()) {
+      return other.size();
+    }
+    if (other.isEmpty()) {
+      return this->size();
+    }
+    size_t answer = 0;
+    // scan "this" and "other"
+    WordIterator<wah_mode> thisItr(*this);
+    WordIterator<wah_mode> otherItr(other);
+    while (true) {
+      if (!thisItr.IsLiteral) {
+        if (!otherItr.IsLiteral) {
+          int minCount = std::min(thisItr.count, otherItr.count);
+          if((thisItr.word | otherItr.word) & SEQUENCE_BIT)
+             answer += 31 * minCount;
+          if (!thisItr.prepareNext(minCount) |
+              !otherItr.prepareNext(minCount)) // NOT ||
+            break;
+        } else {
+          answer += getLiteralBitCount(thisItr.toLiteral() | otherItr.word);
+          thisItr.word--;
+          if (!thisItr.prepareNext(1) |
+              !otherItr.prepareNext()) // do NOT use "||"
+            break;
+        }
+      } else if (!otherItr.IsLiteral) {
+        answer += getLiteralBitCount(thisItr.word | otherItr.toLiteral());
+        otherItr.word--;
+        if (!thisItr.prepareNext() |
+            !otherItr.prepareNext(1)) // do NOT use  "||"
+          break;
+      } else {
+        answer += getLiteralBitCount(thisItr.word | otherItr.word);
+        if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use "||"
+          break;
+      }
+    }
+    answer += thisItr.flushCount();
+    answer += otherItr.flushCount();
+    return answer;
+  }
 
   void clear() { reset(); }
 
@@ -1028,20 +1070,23 @@ public:
 
 
   uint32_t flushCount() {
+    if(exhausted()) return 0;
     uint32_t cardsize = 0;
-    while(!exhausted()) {
+    do {
       if (IsLiteral) {
         cardsize += getLiteralBitCount(word);
       } else {
-        if(word & SEQUENCE_BIT)
+        if(word & SEQUENCE_BIT) {
            cardsize += 31 * count;
+        }
       }
     } while (prepareNext());
     return cardsize;
   }
 
   bool flushEmpty() {
-    while(!exhausted()) {
+    if(exhausted()) return true;
+    do {
       if (IsLiteral) {
         if(!isLiteralZero(word)) return false;
       } else {
