@@ -247,7 +247,6 @@ public:
     // compute the greatest element
     if (invalidLast)
       res.updateLast();
-
     return;
   }
 
@@ -427,6 +426,49 @@ public:
     }
     if(thisItr.flushEmpty() && otherItr.flushEmpty()) return true;
     return false;
+  }
+
+  size_t  logicalandnotCount(const ConciseSet<wah_mode> &other) const {
+      if (isEmpty()) {
+        return 0;
+      }
+      if (other.isEmpty()) {
+        return this->count();
+      }
+      size_t answer = 0;
+      // scan "this" and "other"
+      WordIterator<wah_mode> thisItr(*this);
+      WordIterator<wah_mode> otherItr(other);
+      while (true) {
+        if (!thisItr.IsLiteral) {
+          if (!otherItr.IsLiteral) {
+            int minCount = std::min(thisItr.count, otherItr.count);
+            if(concise_andnot(thisItr.word, otherItr.word) & SEQUENCE_BIT)
+               answer += 31 * minCount;
+            if (!thisItr.prepareNext(minCount) |
+                !otherItr.prepareNext(minCount)) // NOT ||
+              break;
+          } else {
+            answer += getLiteralBitCount(concise_andnot(thisItr.toLiteral(), otherItr.word));
+            thisItr.word--;
+            if (!thisItr.prepareNext(1) |
+                !otherItr.prepareNext()) // do NOT use "||"
+              break;
+          }
+        } else if (!otherItr.IsLiteral) {
+          answer += getLiteralBitCount(concise_andnot(thisItr.word, otherItr.toLiteral()));
+          otherItr.word--;
+          if (!thisItr.prepareNext() |
+              !otherItr.prepareNext(1)) // do NOT use  "||"
+            break;
+        } else {
+          answer += getLiteralBitCount(concise_andnot(thisItr.word, otherItr.word));
+          if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use "||"
+            break;
+        }
+      }
+      answer += thisItr.flushCount();
+      return answer;
   }
 
   size_t logicalxorCount(const ConciseSet<wah_mode> &other) const {
