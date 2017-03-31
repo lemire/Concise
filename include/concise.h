@@ -433,7 +433,7 @@ public:
         return 0;
       }
       if (other.isEmpty()) {
-        return this->count();
+        return this->size();
       }
       size_t answer = 0;
       // scan "this" and "other"
